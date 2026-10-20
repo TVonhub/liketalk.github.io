@@ -170,13 +170,7 @@ async function connectPeer(other){
   if(!thisRoom||!localStream||other===uid||peers.has(other))return;
   const key=pairKey(other),pairRef=ref(db,`rooms/${thisRoom}/signals/${key}`);
   const isOfferer=uid<other;
-  
-  // กำหนดค่า STUN และ TURN Server สำหรับเชื่อมต่อข้ามเครือข่าย (WiFi / เน็ตมือถือ)[span_18](start_span)[span_18](end_span)[span_19](start_span)[span_19](end_span)
-  const pc=new RTCPeerConnection({
-    iceServers:[
-      {urls:"stun:stun.l.google.com:19302"},
-      {urls:"stun:stun1.l.google.com:19302"}
-      // หากมี TURN Server สามารถเปิดคอมเมนต์และใส่ข้อมูลด้านล่างนี้ได้เลยครับ:
+  รับ:
       /*
       {
         urls: "free.expressturn.com:3478",
