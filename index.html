@@ -193,7 +193,7 @@ async function connectPeer(other){
     {urls:"stun:stun.l.google.com:19302"},
     {urls:"stun:stun1.l.google.com:19302"}
   ]});
-  const state={pc,pending:[],roomId:thisRoom,sessionId:null,signalUnsub:null,candidateUnsub:null,started:false,closed:false};
+  const state={pc,pending:[],roomId:thisRoom,sessionId:null,signalUnsub:null,candidateUnsub:null,started:false,closed:false,answerProcessing:false,offerProcessing:false,answeredSessionId:null,offeredSessionId:null};
   peers.set(other,state);
   createParticipantTile(other);
   localStream.getTracks().forEach(track=>pc.addTrack(track,localStream));
@@ -238,9 +238,22 @@ async function connectPeer(other){
         if(state.closed||roomId!==thisRoom||peers.get(other)!==state)return;
         const data=snap.val()||{};
         if(data.sessionId!==state.sessionId)return;
-        if(data.phase==="answer"&&data.answer?.sdp&&data.answer.sessionId===state.sessionId&&!pc.remoteDescription){
-          try{await pc.setRemoteDescription(new RTCSessionDescription({type:data.answer.type,sdp:data.answer.sdp}));await drainIce(state);}
-          catch(e){status("รับคำตอบจากสมาชิกไม่สำเร็จ: "+e.message);}
+        // Firebase onValue may fire repeatedly while an async SDP operation is
+        // still pending. Lock the answer path before awaiting to prevent a
+        // duplicate setRemoteDescription() when the PC has already returned
+        // to the stable state.
+        if(data.phase==="answer"&&data.answer?.sdp&&data.answer.sessionId===state.sessionId&&
+           state.answeredSessionId!==state.sessionId&&!state.answerProcessing&&
+           !pc.remoteDescription&&pc.signalingState==="have-local-offer"){
+          state.answerProcessing=true;
+          try{
+            await pc.setRemoteDescription(new RTCSessionDescription({type:data.answer.type,sdp:data.answer.sdp}));
+            state.answeredSessionId=state.sessionId;
+            await drainIce(state);
+          }catch(e){
+            console.warn("Remote answer rejected",e);
+            status("รับคำตอบจากสมาชิกไม่สำเร็จ: "+e.message);
+          }finally{state.answerProcessing=false;}
         }
       },err=>status("อ่านสัญญาณวิดีโอไม่ได้: "+err.message));
       const offer=await pc.createOffer();await pc.setLocalDescription(offer);
@@ -258,8 +271,14 @@ async function connectPeer(other){
           if(roomId===thisRoom)Promise.resolve().then(()=>connectPeer(other));
           return;
         }
-        if(state.sessionId===data.sessionId&&pc.remoteDescription)return;
+        if(state.sessionId===data.sessionId&&(
+             state.offeredSessionId===data.sessionId||state.offerProcessing||pc.remoteDescription))return;
+        if(pc.signalingState!=="stable"){
+          console.warn("Skip offer while peer connection is not stable",pc.signalingState);
+          return;
+        }
         state.sessionId=data.sessionId;
+        state.offerProcessing=true;
         listenForRemoteIce(state.sessionId);
         try{
           await pc.setRemoteDescription(new RTCSessionDescription({type:data.offer.type,sdp:data.offer.sdp}));
@@ -269,7 +288,9 @@ async function connectPeer(other){
           const latest=await get(pairRef);
           if(!latest.exists()||latest.val()?.sessionId!==state.sessionId)return;
           await update(pairRef,{phase:"answer",answer:{type:answer.type,sdp:answer.sdp,sessionId:state.sessionId},sessionId:state.sessionId,from:uid});
+          state.offeredSessionId=state.sessionId;
         }catch(e){status("เชื่อมต่อกับสมาชิกไม่สำเร็จ: "+e.message);}
+        finally{state.offerProcessing=false;}
       },err=>status("อ่านสัญญาณวิดีโอไม่ได้: "+err.message));
     }
   }catch(e){
