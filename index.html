@@ -19,15 +19,15 @@ main{max-width:1000px;margin:auto;padding:22px 16px 40px}.brand{display:flex;ali
 </head>
 <body>
 <main>
-  <header class="brand"><div class="logo">🎥</div><div><h1>Like <span style="color:#c4b5fd">Talk</span></h1><p>วิดีโอคอลหลายคน • สร้างห้องและเข้าร่วมได้สูงสุด 12 คน</p></div></header>
-  <div class="notice">การใช้งานต้องเปิดผ่าน HTTPS หรือ localhost และอนุญาตกล้อง/ไมโครโฟนก่อนโทรหาใคร โปรดแจ้งและขอความยินยอมจากคู่สนทนาก่อนทุกครั้ง</div>
+  <header class="brand"><div class="logo">🎥</div><div><h1>LikeTalk <span style="color:#c4b5fd">HTML5</span></h1><p>วิดีโอคอลหลายคน • สร้างห้องและเข้าร่วมได้สูงสุด 12 คน</p></div></header>
+  <div class="notice">การใช้งานต้องเปิดผ่าน HTTPS หรือ localhost และอนุญาตกล้อง/ไมโครโฟนก่อนบันทึกหรือโทรหาใคร โปรดแจ้งและขอความยินยอมจากคู่สนทนาก่อนบันทึกทุกครั้ง</div>
   <div id="status" class="status">กำลังเริ่มต้น Firebase…</div>
   <section id="participantsGrid" class="videos participants-grid">
     <article class="video-card" id="localCard"><h2>คุณ (กล้องของฉัน)</h2><div class="video-wrap"><video id="localVideo" autoplay playsinline muted></video><button class="fullscreen-btn" data-fullscreen="localVideo" type="button">⛶ เต็มจอ</button><div id="localEmpty" class="empty">กด “เปิดกล้อง” เพื่อเริ่ม</div></div></article>
   </section>
   <section class="rooms-panel">
     <div class="rooms-head"><h2>🟢 ห้องออนไลน์ <span id="roomCount">0</span></h2><div class="controls" style="margin:0"><button id="createRoomBtn" class="green" disabled>＋ สร้างห้อง</button><button id="refreshRoomsBtn">↻ รีเฟรช</button></div></div>
-    <p class="sub">สร้างห้องใหม่หรือกดเข้าห้องที่เปิดอยู่ รองรับสูงสุด 12 คนต่อห้อง ทุกคนเปิดกล้องและไมค์ของตัวเองได้ • หากเชื่อมต่อภาพไม่ติดในบางเครือข่าย สามารถใส่ TURN Server เพิ่มเติมได้</p>
+    <p class="sub">สร้างห้องใหม่หรือกดเข้าห้องที่เปิดอยู่ รองรับสูงสุด 12 คนต่อห้อง ทุกคนเปิดกล้องและไมค์ของตัวเองได้ • หากเชื่อมต่อภาพไม่ติดในบางเครือข่าย อาจต้องตั้งค่า TURN server</p>
     <div id="roomsList" class="rooms-list"><div class="room-empty">กำลังโหลดรายชื่อห้อง…</div></div>
     <div id="currentRoomPanel" class="current-room hidden"><div><strong id="currentRoomName">ยังไม่ได้เข้าห้อง</strong><small id="currentRoomCount">0/12 คน</small></div><button id="leaveRoomBtn" class="red">ออกจากห้อง</button></div>
   </section>
@@ -36,8 +36,12 @@ main{max-width:1000px;margin:auto;padding:22px 16px 40px}.brand{display:flex;ali
     <button id="micBtn" disabled>ปิดไมค์</button>
     <button id="cameraToggleBtn" disabled>ปิดกล้อง</button>
     <button id="switchCameraBtn" disabled>🔄 ใช้กล้องหลัง</button>
+    <button id="speakerBtn" class="green">🔊 เปิดเสียงลำโพง</button>
+    <button id="recordBtn" class="red" disabled>● บันทึกวิดีโอ</button>
+    <button id="stopBtn" class="green hidden">■ หยุดบันทึก</button>
   </div>
-  <p class="sub">การปิดแท็บจะตัดการโทร</p>
+  <p class="sub">เสียงคู่สนทนาจะเล่นผ่านอุปกรณ์เสียงเริ่มต้นและตั้งระดับเสียงในเว็บ 100% หากเสียงยังออกหูฟัง/ลำโพงสนทนา ให้เพิ่มระดับเสียงสื่อของเครื่องและแตะปุ่มเปิดเสียงอีกครั้ง ทั้งนี้เบราว์เซอร์บางรุ่นไม่อนุญาตให้เว็บบังคับเปลี่ยนเส้นทางเสียงฮาร์ดแวร์</p>
+  <p class="sub">การบันทึกจะเก็บเฉพาะภาพจากกล้องของคุณและเสียงไมโครโฟน เป็นไฟล์ที่เบราว์เซอร์รองรับ (โดยมากเป็น WebM) แล้วดาวน์โหลดลงเครื่อง ไม่รวมภาพ/เสียงของคู่สนทนา การปิดแท็บจะตัดการโทร</p>
 </main>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
@@ -56,18 +60,20 @@ const firebaseConfig = {
 const $ = id => document.getElementById(id);
 const statusEl = $("status"), localVideo = $("localVideo");
 let auth, db, uid=null, localStream=null, roomId=null, roomMeta=null;
-let roomsUnsub=null, membersUnsub=null, memberIds=new Set(), peers=new Map();
+let roomsUnsub=null, membersUnsub=null, memberIds=new Set(), peers=new Map(), recorder=null, recordedChunks=[], recording=false;
 let joiningRoom=false, creatingRoom=false;
 let cameraFacingMode="user", switchingCamera=false;
 const MAX_USERS=12;
 function status(s){statusEl.textContent=s;}
-
+// Play remote voice through a dedicated audio element at full media volume.
+// Mobile browsers may still require a user gesture and physical volume controls.
 function trySetPlaybackAudioSession(){
   try{
+    // Experimental in some browsers; ignored safely where unsupported.
     if(navigator.audioSession && "type" in navigator.audioSession) navigator.audioSession.type="playback";
   }catch(e){console.warn("audioSession playback mode unavailable",e);}
 }
-async function playParticipantAudio(id, stream){
+async function playParticipantAudio(id, stream, userGesture=false){
   const audio=$("audio-"+id);
   if(!audio||!stream)return false;
   audio.srcObject=stream;
@@ -86,14 +92,21 @@ async function playParticipantAudio(id, stream){
     return false;
   }
 }
-async function enableSpeakerAudio(){
+async function enableSpeakerAudio(showStatus=true){
   trySetPlaybackAudioSession();
   const audioElements=[...document.querySelectorAll("#participantsGrid audio.remote-audio")];
+  let failed=false;
   for(const audio of audioElements){
     audio.muted=false;audio.volume=1;audio.autoplay=true;audio.playsInline=true;
     try{if(typeof audio.setSinkId==="function")await audio.setSinkId("default");}catch(e){console.warn("Could not select default audio output",e);}
-    try{await audio.play();}catch(e){console.warn("Browser blocked audio",e);}
+    try{await audio.play();}catch(e){failed=true;console.warn("Browser blocked audio; user gesture required",e);}
   }
+  $("speakerBtn").textContent=failed?"🔊 แตะเพื่อเปิดเสียง":"🔊 ลำโพงเปิดอยู่ · 100%";
+  if(showStatus){
+    if(failed)status("เบราว์เซอร์ยังไม่อนุญาตเสียง • แตะปุ่มนี้อีกครั้ง และเพิ่มระดับเสียงสื่อของโทรศัพท์");
+    else status("เปิดเสียงคู่สนทนาผ่านอุปกรณ์เสียงเริ่มต้นแล้ว • ระดับเสียงในเว็บ 100%");
+  }
+  return !failed;
 }
 function updateRoomButtons(){
   document.querySelectorAll("#roomsList button").forEach(btn=>{btn.disabled=!uid||!!roomId||joiningRoom||creatingRoom;});
@@ -105,7 +118,8 @@ function setControls(){
   $("cameraBtn").disabled=!!localStream;
   $("micBtn").disabled=!localStream;
   $("cameraToggleBtn").disabled=!localStream;
-  $("switchCameraBtn").disabled=!localStream||switchingCamera;
+  $("switchCameraBtn").disabled=!localStream||switchingCamera||recording;
+  $("recordBtn").disabled=!localStream||recording;
 }
 async function openCamera(){
   if(localStream)return;
@@ -113,21 +127,23 @@ async function openCamera(){
     localStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"},audio:true});
     localVideo.srcObject=localStream;$("localEmpty").classList.add("hidden");
     $("cameraBtn").textContent="กล้องพร้อมแล้ว";setControls();status("เปิดกล้องและไมโครโฟนแล้ว • สร้างห้องหรือเลือกห้องเพื่อเข้าร่วมได้");
-    enableSpeakerAudio();
   }catch(e){status("เปิดกล้อง/ไมโครโฟนไม่ได้: "+e.message+" — ต้องอนุญาตสิทธิ์และใช้ HTTPS");}
 }
 async function switchCamera(){
   if(!localStream){status("กรุณาเปิดกล้องก่อนสลับกล้อง");return;}
   if(switchingCamera)return;
+  if(recording){status("กรุณาหยุดบันทึกวิดีโอก่อนสลับกล้อง เพื่อป้องกันไฟล์บันทึกเสียหาย");return;}
   if(!navigator.mediaDevices?.getUserMedia){status("เบราว์เซอร์นี้ไม่รองรับการสลับกล้อง");return;}
   switchingCamera=true;setControls();
   const nextFacing=cameraFacingMode==="user"?"environment":"user";
   let tempStream=null;
   try{
+    // Request only video so the existing microphone track remains unchanged.
     tempStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:nextFacing}},audio:false});
     const newTrack=tempStream.getVideoTracks()[0];
     if(!newTrack)throw new Error("ไม่พบกล้องที่เลือก");
     const oldTrack=localStream.getVideoTracks()[0];
+    // Replace the outgoing video track for every connected participant.
     const replaceResults=await Promise.allSettled([...peers.values()].map(state=>{
       const sender=state.pc.getSenders().find(item=>item.track?.kind==="video");
       return sender?sender.replaceTrack(newTrack):Promise.resolve();
@@ -137,6 +153,7 @@ async function switchCamera(){
     localVideo.srcObject=localStream;
     newTrack.onended=()=>console.warn("Camera track ended");
     if(oldTrack)oldTrack.stop();
+    // The track is now owned by localStream; do not stop it in the temporary stream.
     cameraFacingMode=nextFacing;
     $("switchCameraBtn").textContent=nextFacing==="user"?"🔄 ใช้กล้องหลัง":"🔄 ใช้กล้องหน้า";
     const failed=replaceResults.filter(result=>result.status==="rejected").length;
@@ -144,12 +161,13 @@ async function switchCamera(){
   }catch(e){
     status("สลับกล้องไม่สำเร็จ: "+(e.message||e)+" • ตรวจสอบสิทธิ์กล้องและอุปกรณ์");
   }finally{
+    // Do not stop the track if it was successfully installed in localStream.
     const activeTrack=localStream?.getVideoTracks()[0];
     tempStream?.getTracks().forEach(track=>{if(track!==activeTrack)track.stop();});
     switchingCamera=false;setControls();
   }
 }
-function pairKey(other){return uid<other?`${uid}__${other}`:`${other}__${uid};`;}
+function pairKey(other){return uid<other?`${uid}__${other}`:`${other}__${uid}`;}
 function createParticipantTile(id){
   if(id===uid)return $("localCard");
   const existing=$("tile-"+id);if(existing)return existing;
@@ -157,6 +175,7 @@ function createParticipantTile(id){
   const h=document.createElement("h2");h.textContent="ผู้เข้าร่วม "+id.slice(0,6);
   const wrap=document.createElement("div");wrap.className="video-wrap";
   const video=document.createElement("video");video.id="video-"+id;video.autoplay=true;video.playsInline=true;video.muted=true;
+  // Keep picture muted and route the participant's voice through a dedicated audio element.
   const audio=document.createElement("audio");audio.id="audio-"+id;audio.className="remote-audio";audio.autoplay=true;audio.playsInline=true;audio.volume=1;
   const full=document.createElement("button");full.className="fullscreen-btn";full.type="button";full.textContent="⛶ เต็มจอ";full.addEventListener("click",()=>fullscreenVideo(video));
   const empty=document.createElement("div");empty.className="empty";empty.id="empty-"+id;empty.textContent="กำลังเชื่อมต่อกล้อง…";
@@ -170,18 +189,10 @@ async function connectPeer(other){
   if(!thisRoom||!localStream||other===uid||peers.has(other))return;
   const key=pairKey(other),pairRef=ref(db,`rooms/${thisRoom}/signals/${key}`);
   const isOfferer=uid<other;
-
-  const pc = new RTCPeerConnection({
-    iceServers: [
-      { urls: "stun:stun.l.google.com:19302" },
-      {
-        urls: "turn:free.expressturn.com:3478",
-        username: "000000002107819132",
-        credential: "TTh7WITgg6wz9djB45IOoidejQE="
-      }
-    ]
-  });
-
+  const pc=new RTCPeerConnection({iceServers:[
+    {urls:"stun:stun.l.google.com:19302"},
+    {urls:"stun:stun1.l.google.com:19302"}
+  ]});
   const state={pc,pending:[],roomId:thisRoom,sessionId:null,signalUnsub:null,candidateUnsub:null,started:false,closed:false};
   peers.set(other,state);
   createParticipantTile(other);
@@ -193,12 +204,14 @@ async function connectPeer(other){
       video.srcObject=e.streams[0];video.muted=true;video.autoplay=true;video.playsInline=true;
       $("empty-"+other)?.classList.add("hidden");
       trySetPlaybackAudioSession();
-      playParticipantAudio(other,e.streams[0]);
+      playParticipantAudio(other,e.streams[0]).then(ok=>{
+        $("speakerBtn").textContent=ok?"🔊 ลำโพงเปิดอยู่ · 100%":"🔊 แตะเพื่อเปิดเสียง";
+      });
     }
   };
   pc.onconnectionstatechange=()=>{
     if(state.closed||roomId!==thisRoom)return;
-    if(pc.connectionState==="failed")status("เชื่อมต่อกับสมาชิก "+other.slice(0,6)+" ไม่สำเร็จ");
+    if(pc.connectionState==="failed")status("เชื่อมต่อกับสมาชิก "+other.slice(0,6)+" ไม่สำเร็จ • เครือข่ายนี้อาจต้องใช้ TURN server");
     else if(pc.connectionState==="connected"){$("empty-"+other)?.classList.add("hidden");}
   };
   pc.onicecandidate=e=>{
@@ -213,6 +226,8 @@ async function connectPeer(other){
   }
   try{
     if(isOfferer){
+      // The lower UID is the only offerer. Clear old negotiation data first so
+      // a reconnect cannot accidentally reuse a stale offer/answer/candidate set.
       const session=`${Date.now().toString(36)}_${Math.random().toString(36).slice(2,12)}`;
       state.sessionId=session;
       await remove(pairRef);
@@ -232,6 +247,8 @@ async function connectPeer(other){
       if(state.closed||roomId!==thisRoom)return;
       await update(pairRef,{phase:"offer",offer:{type:offer.type,sdp:offer.sdp,sessionId:session},sessionId:session,from:uid});
     }else{
+      // The answerer only accepts an offer that carries a session ID. If a new
+      // session replaces an old one, recreate the peer rather than reusing SDP.
       state.signalUnsub=onValue(pairRef,async snap=>{
         if(state.closed||roomId!==thisRoom||peers.get(other)!==state)return;
         const data=snap.val()||{};
@@ -276,7 +293,7 @@ async function watchMembers(id){
 }
 async function createRoom(){
   if(creatingRoom||joiningRoom){status("กำลังดำเนินการ กรุณารอสักครู่…");return;}
-  if(!uid){status("Firebase ยังไม่ล็อกอิน");return;}
+  if(!uid){status("Firebase ยังไม่ล็อกอิน กรุณาตรวจสอบค่า appId และการตั้งค่า Firebase");return;}
   if(roomId){status("คุณอยู่ในห้องแล้ว กรุณาออกจากห้องเดิมก่อน");return;}
   creatingRoom=true;updateRoomButtons();
   try{
@@ -285,7 +302,7 @@ async function createRoom(){
     const newRef=push(ref(db,"rooms"));const id=newRef.key;const now=Date.now();
     const data={id,name:name.slice(0,60),ownerUid:uid,createdAt:now,maxUsers:MAX_USERS,members:{[uid]:{joinedAt:now}}};
     await set(newRef,data);
-    try{await onDisconnect(ref(db,`rooms/${id}/members/${uid}`)).remove();}catch(e){console.warn(e);}
+    try{await onDisconnect(ref(db,`rooms/${id}/members/${uid}`)).remove();}catch(e){console.warn("onDisconnect setup failed",e);}
     await set(ref(db,`publicRooms/${id}`),{id,name:data.name,ownerUid:uid,createdAt:now,maxUsers:MAX_USERS,count:1});
     roomId=id;roomMeta=data;$("currentRoomPanel").classList.remove("hidden");$("currentRoomName").textContent="🏠 "+data.name;setControls();await watchMembers(id);status("สร้างห้องสำเร็จ • รอผู้เข้าร่วมได้สูงสุด 12 คน");
   }catch(e){status("สร้างห้องไม่สำเร็จ: "+(e?.message||e));}
@@ -293,7 +310,7 @@ async function createRoom(){
 }
 async function joinRoom(id){
   if(joiningRoom){status("กำลังเข้าห้องอยู่ กรุณารอสักครู่…");return;}
-  if(!uid){status("Firebase ยังไม่ล็อกอิน");return;}
+  if(!uid){status("Firebase ยังไม่ล็อกอิน กรุณาตรวจสอบ Web App ID และ Anonymous Authentication");return;}
   if(roomId){status("กรุณาออกจากห้องปัจจุบันก่อน");return;}
   joiningRoom=true;updateRoomButtons();
   try{
@@ -315,24 +332,38 @@ async function joinRoom(id){
       return members;
     },{applyLocally:false});
     if(!tx.committed){
-      status("เข้าห้องไม่สำเร็จ ห้องอาจจะเต็มแล้ว");
+      const [roomLatest,membersLatest]=await Promise.all([get(roomRef),get(membersRef)]);
+      if(!roomLatest.exists()){
+        await remove(ref(db,`publicRooms/${id}`)).catch(()=>{});
+        status("ห้องนี้ถูกปิดไปแล้ว กรุณารีเฟรชรายชื่อห้อง");
+      }else{
+        const latestRoom=roomLatest.val()||{},latestMembers=membersLatest.val()||{};
+        const latestLimit=Math.min(MAX_USERS,Math.max(1,Number(latestRoom.maxUsers)||MAX_USERS));
+        if(Object.keys(latestMembers).length>=latestLimit&&!latestMembers[uid])status(`ห้องนี้เต็มแล้ว (${latestLimit} คน) กรุณาเลือกห้องอื่น`);
+        else status("Firebase ไม่ยืนยันการเข้าห้อง กรุณาตรวจ Rules และลองรีเฟรชอีกครั้ง");
+      }
       return;
     }
     const snap=await get(roomRef);
     if(!snap.exists()){
       await remove(ref(db,`rooms/${id}/members/${uid}`)).catch(()=>{});
-      status("ห้องถูกปิดระหว่างเข้าร่วม");return;
+      status("ห้องถูกปิดระหว่างเข้าร่วม กรุณาเลือกห้องอื่น");return;
     }
     const data=snap.val()||{};
     roomId=id;roomMeta=data;
-    try{await onDisconnect(ref(db,`rooms/${id}/members/${uid}`)).remove();}catch(e){}
+    try{await onDisconnect(ref(db,`rooms/${id}/members/${uid}`)).remove();}
+    catch(e){console.warn("onDisconnect setup failed",e);}
     const membersSnap=await get(membersRef);
     const count=Object.keys(membersSnap.val()||{}).length;
-    await update(ref(db,`publicRooms/${id}`),{count,maxUsers:Number(data.maxUsers)||MAX_USERS,name:data.name||"ห้องวิดีโอ"}).catch(e=>{});
+    await update(ref(db,`publicRooms/${id}`),{count,maxUsers:Number(data.maxUsers)||MAX_USERS,name:data.name||"ห้องวิดีโอ"}).catch(e=>console.warn("room count update failed",e));
     $("currentRoomPanel").classList.remove("hidden");$("currentRoomName").textContent="🏠 "+(data.name||"ห้องวิดีโอ");setControls();
     await watchMembers(id);status("เข้าห้องแล้ว • กำลังเชื่อมต่อกล้องของสมาชิก");
   }catch(e){
-    status("เข้าห้องไม่สำเร็จ: "+(e?.message||e));
+    const code=String(e?.code||""),msg=String(e?.message||e);
+    if(/permission_denied|permission denied|PERMISSION_DENIED/i.test(code+" "+msg))status("เข้าห้องไม่ได้: Firebase Rules ปฏิเสธ rooms/"+id+"/members");
+    else if(/network|offline|unavailable/i.test(code+" "+msg))status("เข้าห้องไม่ได้: เครือข่าย/Firebase ขัดข้องชั่วคราว ("+msg+")");
+    else status("เข้าห้องไม่สำเร็จ ["+(code||"ไม่มี error code")+"]: "+msg);
+    console.error("joinRoom failed",{code,message:msg,roomId:id});
   }finally{
     joiningRoom=false;updateRoomButtons();
   }
@@ -345,7 +376,7 @@ async function leaveRoom(){
     await remove(ref(db,`rooms/${oldId}/members/${uid}`));
     if(oldMeta?.ownerUid===uid){await remove(ref(db,`publicRooms/${oldId}`));await remove(ref(db,`rooms/${oldId}`));}
     else {const snap=await get(ref(db,`rooms/${oldId}/members`));const members=snap.val()||{};await update(ref(db,`publicRooms/${oldId}`),{count:Object.keys(members).length});if(!Object.keys(members).length){await remove(ref(db,`publicRooms/${oldId}`));await remove(ref(db,`rooms/${oldId}`));}}
-  }catch(e){}
+  }catch(e){console.warn(e);}
   roomId=null;roomMeta=null;memberIds.clear();$("currentRoomPanel").classList.add("hidden");
   document.querySelectorAll("#participantsGrid .video-card:not(#localCard)").forEach(el=>el.remove());setControls();status("ออกจากห้องแล้ว");
 }
@@ -354,25 +385,22 @@ async function renderRooms(snapshot){
   $("roomCount").textContent=String(rooms.length);list.replaceChildren();
   if(!rooms.length){const empty=document.createElement("div");empty.className="room-empty";empty.textContent="ยังไม่มีห้องออนไลน์ • กด “สร้างห้อง” เพื่อเริ่ม";list.appendChild(empty);return;}
   rooms.sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0));
-  for(const [id,r] of rooms){const card=document.createElement("div");card.className="room-item";const info=document.createElement("div");const title=document.createElement("strong");title.textContent=r.name||"ห้องวิดีโอ";const small=document.createElement("small");small.textContent=`${Number(r.count)||0}/${Number(r.maxUsers)||MAX_USERS} คน · ${new Date(r.createdAt||Date.now()).toLocaleTimeString("th-TH",{hour:"2-digit",minute:"2-digit"})}`;info.append(title,small);const btn=document.createElement("button");btn.textContent="เข้าห้อง";btn.disabled=!uid||!!roomId||joiningRoom||creatingRoom;btn.addEventListener("click",()=>joinRoom(id));card.append(info,btn);list.appendChild(card);}
+  for(const [id,r] of rooms){const card=document.createElement("div");card.className="room-item";const info=document.createElement("div");const title=document.createElement("strong");title.textContent=r.name||"ห้องวิดีโอ";const small=document.createElement("small");small.textContent=`${Number(r.count)||0}/${Number(r.maxUsers)||MAX_USERS} คน (จำนวนโดยประมาณ) · ${new Date(r.createdAt||Date.now()).toLocaleTimeString("th-TH",{hour:"2-digit",minute:"2-digit"})}`;info.append(title,small);const btn=document.createElement("button");btn.textContent="เข้าห้อง";btn.disabled=!uid||!!roomId||joiningRoom||creatingRoom;btn.addEventListener("click",()=>joinRoom(id));card.append(info,btn);list.appendChild(card);}
 }
-function startRoomDirectory(){if(roomsUnsub)roomsUnsub();roomsUnsub=onValue(ref(db,"publicRooms"),renderRooms,err=>{$("roomsList").textContent="โหลดรายชื่อห้องไม่ได้";});}
-
-$("cameraBtn").addEventListener("click",openCamera);
-$("switchCameraBtn").addEventListener("click",switchCamera);
-$("createRoomBtn").addEventListener("click",createRoom);
-$("leaveRoomBtn").addEventListener("click",leaveRoom);
-$("refreshRoomsBtn").addEventListener("click",async()=>{try{await get(ref(db,"publicRooms"));status("รีเฟรชรายชื่อห้องแล้ว");}catch(e){status("รีเฟรชไม่ได้");}});
-document.querySelectorAll("[data-fullscreen]").forEach(btn=>btn.addEventListener("click",()=>fullscreenVideo($(btn.dataset.fullscreen))));$("micBtn").addEventListener("click",()=>{const t=localStream?.getAudioTracks()[0];if(t){t.enabled=!t.enabled;$("micBtn").textContent=t.enabled?"ปิดไมค์":"เปิดไมค์";}});
+function startRoomDirectory(){if(roomsUnsub)roomsUnsub();roomsUnsub=onValue(ref(db,"publicRooms"),renderRooms,err=>{$("roomsList").textContent="โหลดรายชื่อห้องไม่ได้: "+err.message;});}
+async function toggleRecording(){
+  if(recording){recorder?.stop();return;}if(!localStream){status("กรุณาเปิดกล้องก่อน");return;}
+  const types=["video/webm;codecs=vp9,opus","video/webm;codecs=vp8,opus","video/webm","video/mp4"],mimeType=types.find(t=>MediaRecorder.isTypeSupported(t))||"";
+  try{recordedChunks=[];recorder=new MediaRecorder(localStream,mimeType?{mimeType}:undefined);recorder.ondataavailable=e=>{if(e.data?.size)recordedChunks.push(e.data);};recorder.onerror=e=>status("บันทึกไม่สำเร็จ: "+(e.error?.message||"เกิดข้อผิดพลาด"));recorder.onstop=()=>{const type=recorder.mimeType||"video/webm",ext=type.includes("mp4")?"mp4":"webm",blob=new Blob(recordedChunks,{type}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`LikeTalk_${new Date().toISOString().replace(/[:.]/g,"-")}.${ext}`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);recording=false;$("recordBtn").classList.remove("hidden");$("stopBtn").classList.add("hidden");setControls();status(`บันทึกเสร็จแล้ว • ดาวน์โหลดไฟล์ ${ext.toUpperCase()} แล้ว`);};recorder.start(1000);recording=true;$("recordBtn").classList.add("hidden");$("stopBtn").classList.remove("hidden");setControls();status("กำลังบันทึกภาพและเสียงจากกล้องของคุณเท่านั้น…");}catch(e){recording=false;setControls();status("เริ่มบันทึกไม่ได้: "+e.message);}
+}
+$("cameraBtn").addEventListener("click",openCamera);$("switchCameraBtn").addEventListener("click",switchCamera);$("speakerBtn").addEventListener("click",()=>enableSpeakerAudio(true));$("createRoomBtn").addEventListener("click",createRoom);$("leaveRoomBtn").addEventListener("click",leaveRoom);
+$("refreshRoomsBtn").addEventListener("click",async()=>{try{await get(ref(db,"publicRooms"));status("รีเฟรชรายชื่อห้องแล้ว");}catch(e){status("รีเฟรชไม่ได้: "+e.message);}});
+document.querySelectorAll("[data-fullscreen]").forEach(btn=>btn.addEventListener("click",()=>fullscreenVideo($(btn.dataset.fullscreen))));
+$("recordBtn").addEventListener("click",toggleRecording);$("stopBtn").addEventListener("click",toggleRecording);
+$("micBtn").addEventListener("click",()=>{const t=localStream?.getAudioTracks()[0];if(t){t.enabled=!t.enabled;$("micBtn").textContent=t.enabled?"ปิดไมค์":"เปิดไมค์";}});
 $("cameraToggleBtn").addEventListener("click",()=>{const t=localStream?.getVideoTracks()[0];if(t){t.enabled=!t.enabled;$("cameraToggleBtn").textContent=t.enabled?"ปิดกล้อง":"เปิดกล้อง";}});
-
-window.addEventListener("beforeunload",()=>{try{for(const state of peers.values()){state.pc.close();}localStream?.getTracks().forEach(t=>t.stop());}catch(e){}});
-try{
-  if(firebaseConfig.appId.includes("REPLACE_WITH_WEB_APP_ID")){status("ตั้งค่า Firebase ไม่ครบ");}
-  const app=initializeApp(firebaseConfig);auth=getAuth(app);db=getDatabase(app);
-  signInAnonymously(auth).catch(e=>status("Firebase login ล้มเหลว"));
-  onAuthStateChanged(auth,user=>{if(user){uid=user.uid;setControls();startRoomDirectory();status("เชื่อมต่อ Firebase แล้ว • เปิดกล้องเพื่อสร้างหรือเข้าห้อง");}});
-}catch(e){status("เริ่ม Firebase ไม่สำเร็จ");}
+window.addEventListener("beforeunload",()=>{try{for(const state of peers.values()){state.pc.close();}if(recorder&&recorder.state!=="inactive")recorder.stop();localStream?.getTracks().forEach(t=>t.stop());}catch(e){}});
+try{if(firebaseConfig.appId.includes("REPLACE_WITH_WEB_APP_ID")){status("ตั้งค่า Firebase ไม่ครบ: กรุณาใส่ Web App ID จริงใน firebaseConfig.appId ก่อนใช้งานห้องออนไลน์");}const app=initializeApp(firebaseConfig);auth=getAuth(app);db=getDatabase(app);signInAnonymously(auth).catch(e=>status("Firebase login ล้มเหลว: "+e.message));onAuthStateChanged(auth,user=>{if(user){uid=user.uid;setControls();startRoomDirectory();status("เชื่อมต่อ Firebase แล้ว • เปิดกล้องเพื่อสร้างหรือเข้าห้อง");}});}catch(e){status("เริ่ม Firebase ไม่สำเร็จ: "+e.message);}
 </script>
 </body>
 </html>
