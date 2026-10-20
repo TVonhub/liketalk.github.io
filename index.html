@@ -19,17 +19,17 @@ main{max-width:1000px;margin:auto;padding:22px 16px 40px}.brand{display:flex;ali
 </head>
 <body>
 <main>
-  <header class="brand"><div class="logo">🎥</div><div><h1>Like <span style="color:#c4b5fd">Talk</span></h1><p>วิดีโอคอลหลายคน • สร้างห้องและเข้าร่วมได้สูงสุด 12 คน</p></div></header>
-  <div class="notice">การใช้งานต้องเปิดผ่าน HTTPS หรือ localhost และอนุญาตกล้อง/ไมโครโฟนก่อนโทรหาใคร โปรดแจ้งและขอความยินยอมจากคู่สนทนาก่อนทุกครั้ง</div>
-  <div id="status" class="status">กำลังเริ่มต้น Firebase…</div>
+  <header class="brand"><div class="logo">🎥</div><div><h1>Like <span style="color:#c4b5fd">Talk</span></h1><p>วิดีโอคอลหลายคน • สร้างห้องและเข้าร่วมได้สูงสุด 12 คน[span_2](start_span)[span_2](end_span)[span_3](start_span)[span_3](end_span)</p></div></header>
+  <div class="notice">การใช้งานต้องเปิดผ่าน HTTPS หรือ localhost และอนุญาตกล้อง/ไมโครโฟนก่อนโทรหาใคร โปรดแจ้งและขอความยินยอมจากคู่สนทนาก่อนทุกครั้ง[span_4](start_span)[span_4](end_span)[span_5](start_span)[span_5](end_span)</div>
+  <div id="status" class="status">กำลังเริ่มต้น Firebase…[span_6](start_span)[span_6](end_span)[span_7](start_span)[span_7](end_span)</div>
   <section id="participantsGrid" class="videos participants-grid">
     <article class="video-card" id="localCard"><h2>คุณ (กล้องของฉัน)</h2><div class="video-wrap"><video id="localVideo" autoplay playsinline muted></video><button class="fullscreen-btn" data-fullscreen="localVideo" type="button">⛶ เต็มจอ</button><div id="localEmpty" class="empty">กด “เปิดกล้อง” เพื่อเริ่ม</div></div></article>
   </section>
   <section class="rooms-panel">
     <div class="rooms-head"><h2>🟢 ห้องออนไลน์ <span id="roomCount">0</span></h2><div class="controls" style="margin:0"><button id="createRoomBtn" class="green" disabled>＋ สร้างห้อง</button><button id="refreshRoomsBtn">↻ รีเฟรช</button></div></div>
-    <p class="sub">สร้างห้องใหม่หรือกดเข้าห้องที่เปิดอยู่ รองรับสูงสุด 12 คนต่อห้อง ทุกคนเปิดกล้องและไมค์ของตัวเองได้ • หากเชื่อมต่อภาพไม่ติดในบางเครือข่าย อาจต้องตั้งค่า TURN server</p>
-    <div id="roomsList" class="rooms-list"><div class="room-empty">กำลังโหลดรายชื่อห้อง…</div></div>
-    <div id="currentRoomPanel" class="current-room hidden"><div><strong id="currentRoomName">ยังไม่ได้เข้าห้อง</strong><small id="currentRoomCount">0/12 คน</small></div><button id="leaveRoomBtn" class="red">ออกจากห้อง</button></div>
+    <p class="sub">สร้างห้องใหม่หรือกดเข้าห้องที่เปิดอยู่ รองรับสูงสุด 12 คนต่อห้อง ทุกคนเปิดกล้องและไมค์ของตัวเองได้ • หากเชื่อมต่อภาพไม่ติดในบางเครือข่าย สามารถใส่ TURN Server เพิ่มเติมได้[span_8](start_span)[span_8](end_span)[span_9](start_span)[span_9](end_span)</p>
+    <div id="roomsList" class="rooms-list"><div class="room-empty">กำลังโหลดรายชื่อห้อง…[span_10](start_span)[span_10](end_span)[span_11](start_span)[span_11](end_span)</div></div>
+    <div id="currentRoomPanel" class="current-room hidden"><div><strong id="currentRoomName">ยังไม่ได้เข้าห้อง</strong><small id="currentRoomCount">0/12 คน[span_12](start_span)[span_12](end_span)[span_13](start_span)[span_13](end_span)</small></div><button id="leaveRoomBtn" class="red">ออกจากห้อง</button></div>
   </section>
   <div class="controls">
     <button id="cameraBtn" class="primary">เปิดกล้อง</button>
@@ -37,7 +37,7 @@ main{max-width:1000px;margin:auto;padding:22px 16px 40px}.brand{display:flex;ali
     <button id="cameraToggleBtn" disabled>ปิดกล้อง</button>
     <button id="switchCameraBtn" disabled>🔄 ใช้กล้องหลัง</button>
   </div>
-  <p class="sub">การปิดแท็บจะตัดการโทร</p>
+  <p class="sub">การปิดแท็บจะตัดการโทร[span_14](start_span)[span_14](end_span)[span_15](start_span)[span_15](end_span)</p>
 </main>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
@@ -112,7 +112,7 @@ async function openCamera(){
   try{
     localStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"},audio:true});
     localVideo.srcObject=localStream;$("localEmpty").classList.add("hidden");
-    $("cameraBtn").textContent="กล้องพร้อมแล้ว";setControls();status("เปิดกล้องและไมโครโฟนแล้ว • สร้างห้องหรือเลือกห้องเพื่อเข้าร่วมได้");
+    $("cameraBtn").textContent="กล้องพร้อมแล้ว";setControls();status("เปิดกล้องและไมโครโฟนแล้ว • สร้างห้องหรือเลือกห้องเพื่อเข้าร่วมได้[span_16](start_span)[span_16](end_span)[span_17](start_span)[span_17](end_span)");
     enableSpeakerAudio();
   }catch(e){status("เปิดกล้อง/ไมโครโฟนไม่ได้: "+e.message+" — ต้องอนุญาตสิทธิ์และใช้ HTTPS");}
 }
@@ -170,10 +170,23 @@ async function connectPeer(other){
   if(!thisRoom||!localStream||other===uid||peers.has(other))return;
   const key=pairKey(other),pairRef=ref(db,`rooms/${thisRoom}/signals/${key}`);
   const isOfferer=uid<other;
-  const pc=new RTCPeerConnection({iceServers:[
-    {urls:"stun:stun.l.google.com:19302"},
-    {urls:"stun:stun1.l.google.com:19302"}
-  ]});
+  
+  // กำหนดค่า STUN และ TURN Server สำหรับเชื่อมต่อข้ามเครือข่าย (WiFi / เน็ตมือถือ)[span_18](start_span)[span_18](end_span)[span_19](start_span)[span_19](end_span)
+  const pc=new RTCPeerConnection({
+    iceServers:[
+      {urls:"stun:stun.l.google.com:19302"},
+      {urls:"stun:stun1.l.google.com:19302"}
+      // หากมี TURN Server สามารถเปิดคอมเมนต์และใส่ข้อมูลด้านล่างนี้ได้เลยครับ:
+      /*
+      {
+        urls: "free.expressturn.com:3478",
+        username: "000000002107819132",
+        credential: "TTh7WITgg6wz9djB45IOoidejQE="
+      }
+      */
+    ]
+  });
+
   const state={pc,pending:[],roomId:thisRoom,sessionId:null,signalUnsub:null,candidateUnsub:null,started:false,closed:false};
   peers.set(other,state);
   createParticipantTile(other);
@@ -253,7 +266,7 @@ async function connectPeer(other){
   }
 }
 function closePeer(other){const state=peers.get(other);if(!state)return;state.closed=true;try{state.signalUnsub?.();state.candidateUnsub?.();state.pc.ontrack=null;state.pc.onicecandidate=null;state.pc.close();}catch(e){}peers.delete(other);$("tile-"+other)?.remove();}
-function renderMemberCount(){const count=memberIds.size;$("currentRoomCount").textContent=`${count}/${MAX_USERS} คน`;}
+function renderMemberCount(){const count=memberIds.size;$("currentRoomCount").textContent=`${count}/${MAX_USERS} คน[span_20](start_span)[span_20](end_span)[span_21](start_span)[span_21](end_span)`;}
 async function watchMembers(id){
   if(membersUnsub)membersUnsub();
   membersUnsub=onValue(ref(db,`rooms/${id}/members`),async snap=>{
@@ -263,7 +276,7 @@ async function watchMembers(id){
     for(const member of next){createParticipantTile(member);if(member!==uid&&!peers.has(member))await connectPeer(member);}
     for(const old of [...peers.keys()])if(!next.has(old))closePeer(old);
     if(!next.size){status("ห้องนี้ไม่มีผู้เข้าร่วมแล้ว");return;}
-    status(`อยู่ในห้อง ${roomMeta?.name||"วิดีโอ"} • ${next.size}/${MAX_USERS} คน`);
+    status(`อยู่ในห้อง ${roomMeta?.name||"วิดีโอ"} • ${next.size}/${MAX_USERS} คน[span_22](start_span)[span_22](end_span)[span_23](start_span)[span_23](end_span)`);
   },err=>status("อ่านรายชื่อผู้เข้าร่วมไม่ได้: "+err.message));
 }
 async function createRoom(){
@@ -279,7 +292,7 @@ async function createRoom(){
     await set(newRef,data);
     try{await onDisconnect(ref(db,`rooms/${id}/members/${uid}`)).remove();}catch(e){console.warn(e);}
     await set(ref(db,`publicRooms/${id}`),{id,name:data.name,ownerUid:uid,createdAt:now,maxUsers:MAX_USERS,count:1});
-    roomId=id;roomMeta=data;$("currentRoomPanel").classList.remove("hidden");$("currentRoomName").textContent="🏠 "+data.name;setControls();await watchMembers(id);status("สร้างห้องสำเร็จ • รอผู้เข้าร่วมได้สูงสุด 12 คน");
+    roomId=id;roomMeta=data;$("currentRoomPanel").classList.remove("hidden");$("currentRoomName").textContent="🏠 "+data.name;setControls();await watchMembers(id);status("สร้างห้องสำเร็จ • รอผู้เข้าร่วมได้สูงสุด 12 คน[span_24](start_span)[span_24](end_span)[span_25](start_span)[span_25](end_span)");
   }catch(e){status("สร้างห้องไม่สำเร็จ: "+(e?.message||e));}
   finally{creatingRoom=false;updateRoomButtons();}
 }
@@ -344,7 +357,7 @@ async function leaveRoom(){
 async function renderRooms(snapshot){
   const list=$("roomsList"),all=snapshot.val()||{},rooms=Object.entries(all).filter(([id,r])=>r&&id!==roomId);
   $("roomCount").textContent=String(rooms.length);list.replaceChildren();
-  if(!rooms.length){const empty=document.createElement("div");empty.className="room-empty";empty.textContent="ยังไม่มีห้องออนไลน์ • กด “สร้างห้อง” เพื่อเริ่ม";list.appendChild(empty);return;}
+  if(!rooms.length){const empty=document.createElement("div");empty.className="room-empty";empty.textContent="ยังไม่มีห้องออนไลน์ • กด “สร้างห้อง” เพื่อเริ่ม[span_26](start_span)[span_26](end_span)[span_27](start_span)[span_27](end_span)";list.appendChild(empty);return;}
   rooms.sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0));
   for(const [id,r] of rooms){const card=document.createElement("div");card.className="room-item";const info=document.createElement("div");const title=document.createElement("strong");title.textContent=r.name||"ห้องวิดีโอ";const small=document.createElement("small");small.textContent=`${Number(r.count)||0}/${Number(r.maxUsers)||MAX_USERS} คน · ${new Date(r.createdAt||Date.now()).toLocaleTimeString("th-TH",{hour:"2-digit",minute:"2-digit"})}`;info.append(title,small);const btn=document.createElement("button");btn.textContent="เข้าห้อง";btn.disabled=!uid||!!roomId||joiningRoom||creatingRoom;btn.addEventListener("click",()=>joinRoom(id));card.append(info,btn);list.appendChild(card);}
 }
@@ -363,7 +376,7 @@ try{
   if(firebaseConfig.appId.includes("REPLACE_WITH_WEB_APP_ID")){status("ตั้งค่า Firebase ไม่ครบ");}
   const app=initializeApp(firebaseConfig);auth=getAuth(app);db=getDatabase(app);
   signInAnonymously(auth).catch(e=>status("Firebase login ล้มเหลว"));
-  onAuthStateChanged(auth,user=>{if(user){uid=user.uid;setControls();startRoomDirectory();status("เชื่อมต่อ Firebase แล้ว • เปิดกล้องเพื่อสร้างหรือเข้าห้อง");}});
+  onAuthStateChanged(auth,user=>{if(user){uid=user.uid;setControls();startRoomDirectory();status("เชื่อมต่อ Firebase แล้ว • เปิดกล้องเพื่อสร้างหรือเข้าห้อง[span_28](start_span)[span_28](end_span)[span_29](start_span)[span_29](end_span)");}});
 }catch(e){status("เริ่ม Firebase ไม่สำเร็จ");}
 </script>
 </body>
